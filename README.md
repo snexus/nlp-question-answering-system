@@ -1,5 +1,7 @@
 # Question Answering System
 
+*Work In Progress*
+
 This repository contains an implementation of the question-answering system. The main goal of the project is to learn working
 with 🤗 Transformers architecture by replacing the default head with a custom head suitable for the task, and fine-tuning using custom data.
 
