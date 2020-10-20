@@ -12,16 +12,30 @@ The QA system is built using several sub-components:
 
 ## Installation and running
 
-### Download SQuAD 2.0 data
+*  Clone the repository.
+
+*  Create and activate conda environment:
+```shell script
+conda env create -f environment.yml
+conda activate nlp-question-answering-system
+```
+
+* To explore the predictions, use demo web app built using Streamlit.
+```python
+streamlit run ./webapp.py
+```
+
+### Training
+
+Download the SQuAD 2.0 dataset for training
+
 ```
 mkdir squad
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O squad/train-v2.0.json
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O squad/dev-v2.0.json
 ```
 
-### Training
-
-Example training the QA model for possible questions:
+#### Training locally
 
 ```python
 import train
@@ -34,7 +48,7 @@ train_model(preprocessor=SquadPreprocessor, base_model=QAModel, frac_val_data=0.
 ```
 For more information about training options, use ```help(train_model)```.
 
-### Training on Google Colab
+#### Training on Google Colab
 GC allows using GPU accelerated training by using GPU enabled runtime. To change runtime type, use Runtime-> Change runtime type.
 
-To train the models, use `google_colab_train.ipynb`.
+To train with GC, use `google_colab_train.ipynb` from the notebooks folder.
