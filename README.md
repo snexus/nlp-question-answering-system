@@ -4,8 +4,8 @@
 
 This repository contains an implementation of the question-answering system. The main goal of the project is to learn working
 with 🤗 transformers architecture by replacing the default head with a custom head suitable for the task, and fine-tuning using custom data.
-In addition, the project tries to improve on ability to recognise tricky (impossible) questions which are part of SQuAD 2.0 dataset.
-This project **doesn't use** QA task head coming with HuggingFace transformers, but creates the head architecture from scratch.
+In addition, the project tries to improve on the ability to recognise tricky (impossible) questions which are part of SQuAD 2.0 dataset.
+This project **doesn't use** QA task head coming with HuggingFace transformers but creates the head architecture from scratch.
 The same architecture is used to fine-tune 2 models, as described below. 
 
 The QA system is built using several sub-components:
@@ -14,8 +14,8 @@ The QA system is built using several sub-components:
 * Inference component, combining the output of both models.
 
 The logic behind training two models - the former is a conditional model, trained only on correct question/answers pairs, 
-while the latter additionally includes tricky questions with answers that can't be find in the context. 
-The idea is that combining output of both models will improve discrimination ability of impossible questions.
+while the latter additionally includes tricky questions with answers that can't be found in the context. 
+The idea is that combining the output of both models will improve the discrimination ability on impossible questions.
 
 ## Installation and running
 
