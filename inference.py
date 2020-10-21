@@ -120,18 +120,21 @@ class QAModelInference:
         # total_p = s_p * e_p
 
         if start_po != start_pl and end_po != end_pl:
-            ans = self._form_answer(["<ANSWER UNKNOWN>"], start_proba_po, end_proba_po, start_proba_pl, end_proba_pl)
+            ans = self._form_answer(["<ANSWER UNKNOWN>"], start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
+                                    start_po, end_po, start_pl, end_pl)
 
             # As a plausible answer, return one with highest probability
             if max(start_proba_po[0]) + max(end_proba_po[0]) > max(start_proba_pl[0]) + max(end_proba_pl[0]):
-                ans['plausible_answer'] = ",".join(words_po)
+                ans['plausible_answer'] = " ".join(words_po)
             else:
-                ans['plausible_answer'] = ",".join(words_pl)
+                ans['plausible_answer'] = " ".join(words_pl)
             return ans
 
-        return self._form_answer(words_po, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl)
+        return self._form_answer(words_po, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl, start_po, end_po,
+                                 start_pl, end_pl)
 
-    def _form_answer(self, word_list, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl):
+    def _form_answer(self, word_list, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
+                     start_po, end_po, start_pl, end_pl):
         """
         Forms an output dictionary.
         """
@@ -142,7 +145,12 @@ class QAModelInference:
             'start_word_proba_possible_model': start_proba_po,
             'end_word_proba_possible_model': end_proba_po,
             'start_word_proba_plausible_model': start_proba_pl,
-            'end_word_proba_plausible_model': end_proba_pl
+            'end_word_proba_plausible_model': end_proba_pl,
+            'start_position_possible_model': start_po,
+            'end_position_possible_model': end_po,
+            'start_position_plausible_model': start_pl,
+            'end_position_plausible_model': end_pl,
+
         }
 
 
@@ -161,7 +169,7 @@ if __name__ == '__main__':
     # #
     # tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
 
-    #context = "The Norman dynasty had a major political, cultural and military impact on medieval Europe and even the Near East. The Normans were famed for their martial spirit and eventually for their Christian piety, becoming exponents of the Catholic orthodoxy into which they assimilated. They adopted the Gallo-Romance language of the Frankish land they settled, their dialect becoming known as Norman, Normaund or Norman French, an important literary language. The Duchy of Normandy, which they formed by treaty with the French crown, was a great fief of medieval France, and under Richard I of Normandy was forged into a cohesive and formidable principality in feudal tenure. The Normans are noted both for their culture, such as their unique Romanesque architecture and musical traditions, and for their significant military accomplishments and innovations. Norman adventurers founded the Kingdom of Sicily under Roger II after conquering southern Italy on the Saracens and Byzantines, and an expedition on behalf of their duke, William the Conqueror, led to the Norman conquest of England at the Battle of Hastings in 1066. Norman cultural and military influence spread from these new European centres to the Crusader states of the Near East, where their prince Bohemond I founded the Principality of Antioch in the Levant, to Scotland and Wales in Great Britain, to Ireland, and to the coasts of north Africa and the Canary Islands."
+    # context = "The Norman dynasty had a major political, cultural and military impact on medieval Europe and even the Near East. The Normans were famed for their martial spirit and eventually for their Christian piety, becoming exponents of the Catholic orthodoxy into which they assimilated. They adopted the Gallo-Romance language of the Frankish land they settled, their dialect becoming known as Norman, Normaund or Norman French, an important literary language. The Duchy of Normandy, which they formed by treaty with the French crown, was a great fief of medieval France, and under Richard I of Normandy was forged into a cohesive and formidable principality in feudal tenure. The Normans are noted both for their culture, such as their unique Romanesque architecture and musical traditions, and for their significant military accomplishments and innovations. Norman adventurers founded the Kingdom of Sicily under Roger II after conquering southern Italy on the Saracens and Byzantines, and an expedition on behalf of their duke, William the Conqueror, led to the Norman conquest of England at the Battle of Hastings in 1066. Norman cultural and military influence spread from these new European centres to the Crusader states of the Near East, where their prince Bohemond I founded the Principality of Antioch in the Levant, to Scotland and Wales in Great Britain, to Ireland, and to the coasts of north Africa and the Canary Islands."
 
     # question =  "Who ruled the duchy of Normandy?"
     # question = "What type of major impact did the Norman dynasty have on modern Europe?"
@@ -183,7 +191,7 @@ if __name__ == '__main__':
     # question = "when did Nors encampments ivolve into destructive incursions?"
 
     context = """The Normans thereafter adopted the growing feudal doctrines of the rest of France, and worked them into a functional hierarchical system in both Normandy and in England. The new Norman rulers were culturally and ethnically distinct from the old French aristocracy, most of whom traced their lineage to Franks of the Carolingian dynasty. Most Norman knights remained poor and land-hungry, and by 1066 Normandy had been exporting fighting horsemen for more than a generation. Many Normans of Italy, France and England eventually served as avid Crusaders under the Italo-Norman prince Bohemund I and the Anglo-Norman king Richard the Lion-Heart."""
-    #question = "What was one of the Norman's major exports?"
+    # question = "What was one of the Norman's major exports?"
     # question = "What was one of the Norman's major imports?"
     question = "Who's arristocracy eventually served as avid Crusaders?"
 
