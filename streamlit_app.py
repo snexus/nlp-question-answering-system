@@ -9,6 +9,10 @@ import numpy as np
 
 
 def fetch_cache_models():
+    """
+    If models don't exits on dist, download and store them.
+    """
+
     folder = cfg.model_folder
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -54,6 +58,9 @@ st.markdown(context)
 
 question = st.sidebar.text_input("Enter a question", value=example_question)
 
+st.subheader("Question")
+st.markdown(question)
+
 if st.sidebar.button("Get an answer"):
 
     ans = model.extract_answer(context, question)
@@ -82,5 +89,4 @@ if st.sidebar.button("Get an answer"):
     st.bar_chart(df)
     # st.bar_chart(ans['start_word_proba_possible_model'][0])
     # st.bar_chart(ans['end_word_proba_possible_model'][0])
-else:
-    st.markdown("*Waiting for the question...*")
+
