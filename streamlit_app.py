@@ -1,13 +1,32 @@
 import streamlit as st
-
+import urllib.request
 from inference import QAModelInference
+
+import os
+import config as cfg
+
+
+def fetch_cache_models():
+    folder = cfg.model_folder
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    for model_name, url in cfg.mappings.items():
+        fn = f"{model_name}.pt"
+        if not os.path.exists(os.path.join(folder, fn)):
+            urllib.request.urlretrieve(cfg.possible_model_url, os.path.join(folder, fn))
 
 
 @st.cache(allow_output_mutation=True)
 def load_model():
-    inf = QAModelInference(models_path="model_checkpoint", plausible_model_fn="model_plausible.pt",
-                           possible_model_fn="model_possible_only.pt")
+    inf = QAModelInference(models_path="models", plausible_model_fn="model_plausible.pt",
+                           possible_model_fn="model_possible.pt")
     return inf
+
+
+with st.spinner("Caching models..."):
+    fetch_cache_models()
+
 
 
 model = load_model()

@@ -10,6 +10,7 @@ __pycache__/
 .Python
 .idea/
 squad/
+models/
 model_checkpoint/
 build/
 develop-eggs/
