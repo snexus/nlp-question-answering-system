@@ -47,7 +47,7 @@ example_context = """In 1984, Time Magazine reported that Sassafras, a female po
  Her owner had bought the diploma for $50 to demonstrate that "something that looks like a diploma doesn't mean
   that somebody has responsible training"."""
 
-example_question = "Where did Sassafras live?"
+example_question = "Who was an owner of Sassafras?"
 
 st.sidebar.subheader("Control Panel")
 context = st.sidebar.text_area("Provide a context", value=example_context, max_chars=3000)
