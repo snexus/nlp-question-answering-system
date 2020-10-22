@@ -17,6 +17,9 @@ The logic behind training two models - the former is a conditional model, traine
 while the latter additionally includes tricky questions with answers that can't be found in the context. 
 The idea is that combining the output of both models will improve the discrimination ability on impossible questions.
 
+## Web application 
+https://share.streamlit.io/snexus/nlp-question-answering-system/main
+
 ## Installation and running
 
 *  Clone the repository.
