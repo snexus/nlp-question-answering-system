@@ -97,12 +97,13 @@ class QAModelInference:
         start_logit, end_logit = torch.softmax(start_logit, dim=1), torch.softmax(end_logit, dim=1)
         start_idx, end_idx = torch.argmax(start_logit), torch.argmax(end_logit) + 1
 
-        words = []
+        words = ""
         if end_idx < start_idx:
+            end_idx = torch.argmax(end_logit[0][start_idx:]) + 1
             logging.warning(f"Error: start_idx = {start_idx}, end_idx = {end_idx}")
         else:
             input_ids = tokens['input_ids'].squeeze(0)
-            words = self.tokenizer.convert_ids_to_tokens(input_ids[start_idx:end_idx])
+            words = self.tokenizer.decode(token_ids=input_ids[start_idx:end_idx].to('cpu').numpy())
 
         return start_idx, end_idx, words, start_logit.detach().to('cpu').numpy(), end_logit.detach().to('cpu').numpy()
 
@@ -115,33 +116,31 @@ class QAModelInference:
         start_pl, end_pl, words_pl, start_proba_pl, end_proba_pl = self.get_model_data(self.plausible_model, context,
                                                                                        question)
 
-        # s_p = start_proba[0].dot(start_proba_p[0])
-        # e_p = end_proba[0].dot(end_proba_p[0])
-        # total_p = s_p * e_p
-
         if start_po != start_pl and end_po != end_pl:
-            ans = self._form_answer(["<ANSWER UNKNOWN>"], [''], start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
+            ans = self._form_answer("<ANSWER UNKNOWN>", '', start_proba_po, end_proba_po, start_proba_pl,
+                                    end_proba_pl,
                                     start_po, end_po, start_pl, end_pl)
 
             # As a plausible answer, return one with highest probability
             if max(start_proba_po[0]) + max(end_proba_po[0]) > max(start_proba_pl[0]) + max(end_proba_pl[0]):
-                ans['plausible_answer'] = " ".join(words_po)
+                ans['plausible_answer'] = words_po
             else:
-                ans['plausible_answer'] = " ".join(words_pl)
+                ans['plausible_answer'] = words_pl
             return ans
 
-        return self._form_answer(words_po, words_pl, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl, start_po, end_po,
+        return self._form_answer(words_po, '', start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
+                                 start_po, end_po,
                                  start_pl, end_pl)
 
-    def _form_answer(self, word_list, words_list_plausible, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
+    def _form_answer(self, answer_possible, answer_plausible, start_proba_po, end_proba_po, start_proba_pl, end_proba_pl,
                      start_po, end_po, start_pl, end_pl):
         """
         Forms an output dictionary.
         """
 
         return {
-            'answer': " ".join(word_list),
-            'plausible_answer': " ".join(words_list_plausible),
+            'answer': answer_possible,
+            'plausible_answer': answer_plausible,
             'start_word_proba_possible_model': start_proba_po,
             'end_word_proba_possible_model': end_proba_po,
             'start_word_proba_plausible_model': start_proba_pl,
@@ -158,13 +157,12 @@ def save_lean_model(model, path):
     torch.save(model.state_dict(), path)
 
 
-def load_model(state_path, device = "cpu"):
+def load_model(state_path, device="cpu"):
     logging.info(f"Loading trained state from {state_path}")
     dbm = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
     device = torch.device(device)
     dbm.to(device)
     model = QAModel(transformer_model=dbm, device=device)
-
 
     checkpoint = torch.load(state_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -172,11 +170,13 @@ def load_model(state_path, device = "cpu"):
 
     return model
 
+
 if __name__ == '__main__':
+    pass
 
-    model_possible = load_model("model_checkpoint/plausible_model_30000.pt")
-
-    save_lean_model(model_possible, "model_checkpoint/model_plausible.pt")
+    # model_possible = load_model("model_checkpoint/plausible_model_30000.pt")
+    #
+    # save_lean_model(model_possible, "model_checkpoint/model_plausible.pt")
     # inf = QAModelInference(models_path="model_checkpoint", plausible_model_fn="model_plausible.pt",
     #                        possible_model_fn="model_possible_only.pt")
 
