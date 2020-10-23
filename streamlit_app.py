@@ -1,11 +1,12 @@
-import streamlit as st
-import urllib.request
-from inference import QAModelInference
-
 import os
-import config as cfg
-import pandas as pd
+import urllib.request
+
 import numpy as np
+import pandas as pd
+import streamlit as st
+
+import config as cfg
+from inference import QAModelInference
 
 
 def fetch_cache_models():
@@ -20,7 +21,7 @@ def fetch_cache_models():
     for model_name, url in cfg.mappings.items():
         fn = f"{model_name}.pt"
         if not os.path.exists(os.path.join(folder, fn)):
-            urllib.request.urlretrieve(cfg.possible_model_url, os.path.join(folder, fn))
+            urllib.request.urlretrieve(url, os.path.join(folder, fn))
 
 
 @st.cache(allow_output_mutation=True)
@@ -32,8 +33,6 @@ def load_model():
 
 with st.spinner("Caching models..."):
     fetch_cache_models()
-
-
 
 model = load_model()
 st.title("Question Answering System")
@@ -55,38 +54,80 @@ context = st.sidebar.text_area("Provide a context", value=example_context, max_c
 st.subheader("Context")
 st.markdown(context)
 
-
 question = st.sidebar.text_input("Enter a question", value=example_question)
 
 st.subheader("Question")
 st.markdown(question)
 
+model_selection = st.sidebar.selectbox("Choose a model", options=['Automatic', 'Trained on correct questions',
+                                                                  'Trained on tricky questions'])
+
+
+def get_proba(ans: dict, model_tag: str):
+    """
+    Returns probability distribution over start and end words, together with confidence.
+
+    Parameters
+    ----------
+    ans - dictionary containing inference result.
+    model_tag - string denoting the model, can be either "possible" or "plausible"
+
+    Returns
+    -------
+    start_praba - nd.array containing probability distribution over start word
+    end_praba - nd.array containing probability distribution over end word
+    p - float, combined probability of highest probable start/end words.
+    """
+
+    start_proba_ = ans[f'start_word_proba_{model_tag}_model'][0]
+    end_proba_ = ans[f'end_word_proba_{model_tag}_model'][0]
+    p = (np.max(start_proba_) + np.max(end_proba_)) / 2
+    return start_proba_, end_proba_, p
+
+
 if st.sidebar.button("Get an answer"):
 
     ans = model.extract_answer(context, question)
 
+    if model_selection == 'Automatic':
+        s_p, e_p, pr_p = get_proba(ans, model_tag="possible")
+        s_pl, e_pl, pr_pl = get_proba(ans, model_tag="plausible")
+        # print(ans)
+        if ans['plausible_answer'] !='':
+            start_p, end_p, confidence, answer = s_pl, e_pl, pr_pl, ans['plausible_answer']
+        else:
+            start_p, end_p, confidence, answer = s_p, e_p, pr_p, ans['answer']
+
+        # if s_p == e_pl and e_p == e_pl:
+        #     start_p, end_p, confidence, answer = s_p, e_p, pr_p, ans['answer']
+        #
+        # elif pr_pl >= pr_p:
+        #     start_p, end_p, confidence, answer = s_pl, e_pl, pr_pl, ans['plausible_answer']
+        # else:
+        #     start_p, end_p, confidence, answer = s_p, e_p, pr_p, ans['answer']
+
+    elif model_selection == 'Trained on correct questions':
+        start_p, end_p, confidence = get_proba(ans, model_tag="possible")
+        answer = ans['answer']
+    else:
+        start_p, end_p, confidence = get_proba(ans, model_tag="plausible")
+        answer = ans['plausible_answer']
 
     st.subheader("Answer")
-    if not ans['answer']:
+    if not answer:
         st.markdown("Can't determine the answer.")
     else:
-        st.markdown(ans['answer'])
+        st.markdown(answer)
 
-    if ans['plausible_answer']:
-        st.subheader("Plausible Answer")
-        st.markdown(ans['plausible_answer'])
-
-    confidence = (np.max(ans['start_word_proba_possible_model']) + np.max(ans['end_word_proba_possible_model']))/2
     st.markdown("**Confidence**: {:.3f}".format(confidence))
 
-    #print(ans['start_word_proba_possible_model'][0])
+    # print(ans['start_word_proba_possible_model'][0])
 
     st.markdown("---")
     st.markdown("**Probability distributions of start/end indices**")
-    df = pd.DataFrame(columns = ['start', 'end'])
-    df['start'] = ans['start_word_proba_possible_model'][0]
-    df['end'] = ans['end_word_proba_possible_model'][0]
+    df = pd.DataFrame(columns=['start', 'end'])
+    df['start'] = start_p
+    df['end'] = end_p
     st.bar_chart(df)
     # st.bar_chart(ans['start_word_proba_possible_model'][0])
     # st.bar_chart(ans['end_word_proba_possible_model'][0])
-
