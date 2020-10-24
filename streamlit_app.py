@@ -57,35 +57,53 @@ def load_model():
 with st.spinner("Caching models..."):
     fetch_cache_models()
 
-model = load_model()
+with st.spinner("Loading models..."):
+    model = load_model()
+
 st.title("Question Answering System")
 
+st.write("Built with 🤗 Transformers")
+
+with st.beta_expander("About"):
+    st.markdown("""
+    The main goal of the project is to learn working with 🤗 transformers architecture by replacing the default head with a custom head suitable for the task, and fine-tuning using custom data.
+    In addition, the project tries to improve on the ability to recognise tricky (impossible) questions which are part of SQuAD 2.0 dataset. 
+    This project doesn't use QA task head coming with HuggingFace transformers but creates the head architecture from scratch.
+     The same architecture is used to fine-tune 2 models, as described below.
+
+The QA system is built using several sub-components:
+* HuggingFace's DistilBERT transformer with custom head, fine-tuned on SQuAD v2.0, using only possible questions.
+* HuggingFace's DistilBERT transformer with custom head, fine-tuned on SQuAD v2.0, using both - possible and non-possible questions.
+* Inference component, combining the output of both models.
+
+The logic behind training two models - the former is a conditional model, trained only on correct question/answers pairs, while the latter additionally includes tricky questions with answers that can't be found in the context. The idea is that combining the output of both models will improve the discrimination ability on impossible questions.
+    """)
+
 st.info(
-    ":bulb: How does it work? Enter a context in the control panel, then ask a question about it."
-    " The system will attempt to find and extract the answer.")
+    ":bulb: How does it work? Enter a context, then ask a question about it."
+    " The system will attempt to find and extract the answer, given it exists in the context.")
 
-example_context = """In 1984, Time Magazine reported that Sassafras, a female poodle belonging to a New York City
- physician, had received a diploma from the American Association of Nutrition and Dietary Consultants. 
- Her owner had bought the diploma for $50 to demonstrate that "something that looks like a diploma doesn't mean
-  that somebody has responsible training"."""
+example_context = """In 1984, Time Magazine reported that Sassafras, a female poodle belonging to a New York City physician, had received a diploma from the American Association of Nutrition and Dietary Consultants.  Her owner had bought the diploma for $50 to demonstrate that "something that looks like a diploma doesn't mean that somebody has responsible training"."""
 
-example_question = "Who was an owner of Sassafras?"
+example_question = "Who Sassafras belongs to?"
 
-st.sidebar.subheader("Control Panel")
-context = st.sidebar.text_area("Provide a context", value=example_context, max_chars=3000)
+
 
 st.subheader("Context")
-st.markdown(context)
-
-question = st.sidebar.text_input("Enter a question", value=example_question)
+context = st.text_area("Provide context", value=example_context, height = 150, max_chars=3000)
+#st.markdown(context)
 
 st.subheader("Question")
-st.markdown(question)
+question = st.text_input("Ask a question", value=example_question)
 
-model_selection = st.sidebar.selectbox("Choose a model", options=['Automatic', 'Trained on correct questions',
+
+#st.markdown(question)
+st.subheader("Model")
+model_selection = st.selectbox("Choose a model", options=['Automatic', 'Trained on correct questions',
                                                                   'Trained on tricky questions'])
 
-if st.sidebar.button("Get an answer"):
+
+if st.button("Get an answer"):
 
     ans = model.extract_answer(context, question)
 
@@ -94,8 +112,8 @@ if st.sidebar.button("Get an answer"):
         s_pl, e_pl, pr_pl = get_proba(ans, model_tag="plausible")
         #print(ans)
         if ans['plausible_answer'] != '':
-            start_p, end_p, confidence, answer = s_pl, e_pl, pr_pl, f"Answer is unclear. My guess is:" \
-                                                                    f" \"{ans['plausible_answer']}\"."
+            start_p, end_p, confidence, answer = s_pl, e_pl, pr_pl, f"Models didn't agee on the answer. Choosing most probable: " \
+                                                                    f"\"{ans['plausible_answer']}\"."
         else:
             start_p, end_p, confidence, answer = s_p, e_p, pr_p, ans['answer']
     elif model_selection == 'Trained on correct questions':
