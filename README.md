@@ -1,7 +1,5 @@
 # Question Answering System
 
-*Work In Progress*
-
 This repository contains an implementation of the question-answering system. The main goal of the project is to learn working
 with 🤗 transformers architecture by replacing the default head with a custom head suitable for the task, and fine-tuning using custom data.
 In addition, the project tries to improve on the ability to recognise tricky (impossible) questions which are part of SQuAD 2.0 dataset.
@@ -18,6 +16,8 @@ while the latter additionally includes tricky questions with answers that can't 
 The idea is that combining the output of both models will improve the discrimination ability on impossible questions.
 
 ## Web application 
+
+Explore the QA system using application hosted on Streamlit Sharing:
 https://share.streamlit.io/snexus/nlp-question-answering-system/main
 
 ## Installation and running
@@ -33,33 +33,22 @@ conda activate nlp-question-answering-system
 * Download the trained models:
 TODO - store on publicly available service.
 
-* To explore the predictions, use demo web app built using Streamlit.
-```python
-streamlit run ./webapp.py
-```
 
 ### Training
 
 Download the SQuAD 2.0 dataset for training
 
-```
-mkdir squad
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O squad/train-v2.0.json
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O squad/dev-v2.0.json
+```shell script
+cd nlp-question-answering-system
+./get_data.sh
 ```
 
 #### Training locally
 
-```python
-import train
-from model import QAModel
-
-from preprocess import SquadPreprocessor, SquadPlausibleAnswersPreprocessor
-
-train_model(preprocessor=SquadPreprocessor, base_model=QAModel, frac_val_data=0.025, frac_train_data=0.025, batch_size = 8, n_epoch = 3, 
-                force_cpu=True)
+```shell script
+python train.py
 ```
-For more information about training options, use ```help(train_model)```.
+
 
 #### Training on Google Colab
 GC allows using GPU accelerated training by using GPU enabled runtime. To change runtime type, use Runtime-> Change runtime type.
